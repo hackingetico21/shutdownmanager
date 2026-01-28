@@ -33,8 +33,6 @@ if ($Install) {
     $Trigger1 = New-ScheduledTaskTrigger -AtStartup
     $Trigger1.Delay = "PT1M"
     $Trigger2 = New-ScheduledTaskTrigger -Once -At (Get-Date)
-    $Trigger2.RepetitionInterval = (New-TimeSpan -Minutes 1)
-    $Trigger2.RepetitionDuration = [TimeSpan]::MaxValue 
     
     $Principal = New-ScheduledTaskPrincipal `
         -UserId "SYSTEM" `
