@@ -168,7 +168,7 @@ if ($Test) {
     Write-Host "Minutos fin: $minutosFin"
     
     if ($Dia -in @('Saturday', 'Sunday')) {
-        Write-Host "Fin de semana - SIN RESTRICCIÓN" -ForegroundColor Green
+        Write-Host "Fin de semana - SIN RESTRICCION" -ForegroundColor Green
     } elseif ($minutosActual -lt $minutosInicio) {
         Write-Host "FUERA DE HORARIO - Antes de las 09:00" -ForegroundColor Red
         Write-Host "   (En modo real: APAGARÍA INMEDIATAMENTE)"
