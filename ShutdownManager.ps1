@@ -91,43 +91,53 @@ if ($Run) {
         try {
             $Now = Get-Date
             $Hora = $Now.ToString("HH:mm")
-            $Dia = [int]$Now.DayOfWeek
+            $Dia = [int]$Now.DayOfWeek 
             $Mes = $Now.Month
             
-            if ($Dia -ge 1 -and $Dia -le 5) {
-                
-                if ($Mes -ge 3 -and $Mes -le 12) {
+            $HoraInicio = "09:00"
+            
+            if ($Dia -eq 5 -or $Dia -eq 6) { 
+                $HoraFin = "23:59"
+                $TipoDia = "Viernes/Sábado"
+            } elseif ($Dia -ge 0 -and $Dia -le 4) { 
+                if ($Mes -ge 3 -and $Mes -le 12) { 
                     $HoraFin = "22:30"
-                    $Temporada = "Mar-Dic"
-                } else {
+                    $TipoDia = "Dom-Jue (Mar-Dic)"
+                } else { 
                     $HoraFin = "23:59"
-                    $Temporada = "Ene-Feb"
+                    $TipoDia = "Dom-Jue (Ene-Feb)"
                 }
+            }
+            
+            $minutosActual = ($Now.Hour * 60) + $Now.Minute
+            $minutosInicio = 9 * 60
+            $partesFin = $HoraFin.Split(':')
+            $minutosFin = ([int]$partesFin[0] * 60) + [int]$partesFin[1]
+            
+            $apagar = $false
+            $motivo = ""
+            
+            if ($minutosActual -lt $minutosInicio) {
+                $apagar = $true
+                $motivo = "antes de las 09:00"
+            } elseif ($minutosActual -gt $minutosFin) {
+                $apagar = $true
+                $motivo = "después de las $HoraFin"
+            }
+            
+            if ($apagar) {
+                $mensaje = "APAGADO - Fuera de horario. $TipoDia - $motivo. Límite:$HoraFin Actual:$Hora"
+                Write-Log $mensaje
+                Write-Log "Ejecutando shutdown..."
                 
-                $minutosActual = ($Now.Hour * 60) + $Now.Minute
-                $minutosInicio = 9 * 60
-                $partes = $HoraFin.Split(':')
-                $minutosFin = ([int]$partes[0] * 60) + [int]$partes[1]
+                Start-Sleep -Seconds 2
                 
-                if ($minutosActual -lt $minutosInicio -or $minutosActual -gt $minutosFin) {
-                    
-                    $mensaje = "APAGADO - Fuera de horario. Limite:$HoraFin Actual:$Hora Dia:$Dia Mes:$Mes"
-                    Write-Log $mensaje
-                    Write-Log "Ejecutando shutdown..."
-                    
-                    Start-Sleep -Seconds 2
-                    
-                    shutdown /s /f /t 0 /c "Apagado automatico por horario. Permitido L-V: 09:00-$HoraFin"
-                    
-                    exit
-                } else {
-                    if ($Now.Minute -eq 0) {
-                        Write-Log "Monitor activo. Dentro de horario: $Hora (Dia $Dia, Mes $Mes)"
-                    }
-                }
+                shutdown /s /f /t 0 /c "Apagado automático por horario. $TipoDia: 09:00-$HoraFin"
+                
+                exit
             } else {
-                if ($Now.Hour -eq 0 -and $Now.Minute -eq 0) {
-                    Write-Log "Fin de semana - Sin restricciones (Dia $Dia)"
+                if ($Now.Minute -eq 0) {
+                    Write-Log "Monitor activo. Dentro de horario: $Hora ($TipoDia: 09:00-$HoraFin)"
                 }
             }
             
@@ -143,7 +153,7 @@ if ($Run) {
 
 if ($Test) {
     Write-Host "==========================================" -ForegroundColor Cyan
-    Write-Host "    MODO PRUEBA - No se apagara" -ForegroundColor Cyan
+    Write-Host "    MODO PRUEBA - No se apagará" -ForegroundColor Cyan
     Write-Host "==========================================" -ForegroundColor Cyan
     Write-Host ""
     
@@ -157,51 +167,55 @@ if ($Test) {
     Write-Host "FECHA Y HORA ACTUAL:" -ForegroundColor Yellow
     Write-Host "  Fecha: $($Now.ToString('dd/MM/yyyy'))"
     Write-Host "  Hora: $Hora"
-    Write-Host "  Dia: $DiaNombre (Numero: $DiaNum)"
-    Write-Host "  Mes: $MesNombre (Numero: $Mes)"
+    Write-Host "  Día: $DiaNombre (Número: $DiaNum - 0=Dom, 1=Lun, 2=Mar, 3=Mie, 4=Jue, 5=Vie, 6=Sab)"
+    Write-Host "  Mes: $MesNombre (Número: $Mes)"
     Write-Host ""
     
-    if ($Mes -ge 3 -and $Mes -le 12) {
-        $HoraFin = "22:30"
-        $Temporada = "Marzo a Diciembre"
-    } else {
+    $HoraInicio = "09:00"
+    
+    if ($DiaNum -eq 5 -or $DiaNum -eq 6) { 
         $HoraFin = "23:59"
-        $Temporada = "Enero a Febrero"
+        $TipoDia = "Viernes/Sábado"
+        $Temporada = "Todo el año"
+    } elseif ($DiaNum -ge 0 -and $DiaNum -le 4) { 
+        if ($Mes -ge 3 -and $Mes -le 12) { 
+            $HoraFin = "22:30"
+            $TipoDia = "Domingo a Jueves"
+            $Temporada = "Marzo a Diciembre"
+        } else { 
+            $HoraFin = "23:59"
+            $TipoDia = "Domingo a Jueves"
+            $Temporada = "Enero a Febrero"
+        }
     }
     
-    Write-Host "CONFIGURACION:" -ForegroundColor Yellow
+    Write-Host "CONFIGURACIÓN:" -ForegroundColor Yellow
+    Write-Host "  Tipo de día: $TipoDia"
     Write-Host "  Temporada: $Temporada"
-    Write-Host "  Horario permitido L-V: 09:00 - $HoraFin"
+    Write-Host "  Horario permitido: 09:00 - $HoraFin"
     Write-Host ""
     
     $minutosActual = ($Now.Hour * 60) + $Now.Minute
     $minutosInicio = 9 * 60
-    $partes = $HoraFin.Split(':')
-    $minutosFin = ([int]$partes[0] * 60) + [int]$partes[1]
+    $partesFin = $HoraFin.Split(':')
+    $minutosFin = ([int]$partesFin[0] * 60) + [int]$partesFin[1]
     
-    Write-Host "CALCULOS:" -ForegroundColor Yellow
+    Write-Host "CÁLCULOS:" -ForegroundColor Yellow
     Write-Host "  Minutos actuales: $minutosActual"
     Write-Host "  Minutos inicio: $minutosInicio"
     Write-Host "  Minutos fin: $minutosFin"
     Write-Host ""
     
     Write-Host "RESULTADO:" -ForegroundColor Yellow
-    if ($DiaNum -eq 0 -or $DiaNum -eq 6) {
-        Write-Host "  ES FIN DE SEMANA" -ForegroundColor Green
-        Write-Host "  ESTADO: SIN RESTRICCIONES" -ForegroundColor Green
-        Write-Host "  Accion: El PC NO se apagara"
-    } elseif ($minutosActual -lt $minutosInicio) {
-        Write-Host "  ES DIA LABORABLE" -ForegroundColor Red
+    if ($minutosActual -lt $minutosInicio) {
         Write-Host "  ESTADO: FUERA DE HORARIO (antes de las 09:00)" -ForegroundColor Red
-        Write-Host "  Accion: El PC SE APAGARIA INMEDIATAMENTE" -ForegroundColor Red
+        Write-Host "  Acción: El PC SE APAGARÍA INMEDIATAMENTE" -ForegroundColor Red
     } elseif ($minutosActual -gt $minutosFin) {
-        Write-Host "  ES DIA LABORABLE" -ForegroundColor Red
-        Write-Host "  ESTADO: FUERA DE HORARIO (despues de las $HoraFin)" -ForegroundColor Red
-        Write-Host "  Accion: El PC SE APAGARIA INMEDIATAMENTE" -ForegroundColor Red
+        Write-Host "  ESTADO: FUERA DE HORARIO (después de las $HoraFin)" -ForegroundColor Red
+        Write-Host "  Acción: El PC SE APAGARÍA INMEDIATAMENTE" -ForegroundColor Red
     } else {
-        Write-Host "  ES DIA LABORABLE" -ForegroundColor Green
         Write-Host "  ESTADO: DENTRO DE HORARIO PERMITIDO" -ForegroundColor Green
-        Write-Host "  Accion: El PC NO se apagaria" -ForegroundColor Green
+        Write-Host "  Acción: El PC NO se apagaría" -ForegroundColor Green
     }
     
     exit
@@ -211,39 +225,40 @@ Write-Host "==========================================" -ForegroundColor Cyan
 Write-Host "   SHUTDOWN MANAGER - Control de Horarios" -ForegroundColor Cyan
 Write-Host "==========================================" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "Ubicacion: $ScriptPath"
+Write-Host "Ubicación: $ScriptPath"
 Write-Host "Tarea programada: $TaskName"
 Write-Host ""
-Write-Host "PARAMETROS:" -ForegroundColor Yellow
+Write-Host "PARÁMETROS:" -ForegroundColor Yellow
 Write-Host "  -Install     Instalar como tarea programada"
 Write-Host "  -Uninstall   Eliminar la tarea programada"
 Write-Host "  -Run         Ejecutar el monitor (solo manual)"
 Write-Host "  -Test        Modo prueba (verifica sin apagar)"
 Write-Host ""
 Write-Host "HORARIOS CONFIGURADOS:" -ForegroundColor Yellow
-Write-Host "  Lunes a Viernes:"
+Write-Host "  Domingo a Jueves:"
 Write-Host "     - Marzo a Diciembre: 09:00 - 22:30"
 Write-Host "     - Enero y Febrero: 09:00 - 23:59"
-Write-Host "  Sabados y Domingos: Sin restricciones"
+Write-Host "  Viernes y Sábado:"
+Write-Host "     - Todo el año: 09:00 - 23:59"
 Write-Host ""
-Write-Host "CARACTERISTICAS:" -ForegroundColor Yellow
+Write-Host "CARACTERÍSTICAS:" -ForegroundColor Yellow
 Write-Host "  Se ejecuta al iniciar Windows"
 Write-Host "  Verifica cada 60 segundos"
 Write-Host "  Apagado inmediato fuera de horario"
 Write-Host "  Log en: $LogPath"
-Write-Host "  Modo prueba para verificar configuracion"
+Write-Host "  Modo prueba para verificar configuración"
 Write-Host ""
 Write-Host "EJEMPLOS DE USO:" -ForegroundColor Yellow
 Write-Host "  # Instalar (requiere Administrador)"
 Write-Host "  .\ShutdownManager.ps1 -Install"
 Write-Host ""
-Write-Host "  # Probar configuracion actual"
+Write-Host "  # Probar configuración actual"
 Write-Host "  .\ShutdownManager.ps1 -Test"
 Write-Host ""
 Write-Host "  # Ver estado de la tarea"
 Write-Host "  Get-ScheduledTask -TaskName `"$TaskName`""
 Write-Host ""
 Write-Host "  # Ver log"
-Write-Host "  Get-Content `"$LogPath`""
+Write-Host "  Get-Content `"$LogPath`" -Wait"
 Write-Host ""
 Write-Host "NOTA: Requiere permisos de administrador para instalar" -ForegroundColor Yellow
