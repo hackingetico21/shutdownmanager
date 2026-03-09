@@ -303,7 +303,6 @@ if ($Test) {
     exit
 }
 
-# Menú principal cuando se ejecuta sin parámetros
 Write-Host "==========================================" -ForegroundColor Cyan
 Write-Host "   SHUTDOWN MANAGER - Control de Horarios" -ForegroundColor Cyan
 Write-Host "==========================================" -ForegroundColor Cyan
