@@ -331,4 +331,4 @@ Write-Host "  Primero prueba con: .\ShutdownManager.ps1 -Test" -ForegroundColor 
 Write-Host "  Luego instala con: .\ShutdownManager.ps1 -Install" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Para monitorear el log en tiempo real:" -ForegroundColor Yellow
-Write-Host "  Get-Content '$LogPath' -Wait" -ForegroundColor Cyan
+Write-Host "  Get-Content '$LogPath' -Wait" -ForegroundColor Cyan"
