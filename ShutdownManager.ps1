@@ -30,7 +30,7 @@ function Test-ScriptLocation {
             Write-Host "Script copiado a: $ScriptPath" -ForegroundColor Green
         } catch {
             Write-Host "ERROR: No se pudo copiar el script a $ScriptPath" -ForegroundColor Red
-            Write-Host "Asegúrate de ejecutar como Administrador" -ForegroundColor Yellow
+            Write-Host "Asegurate de ejecutar como Administrador" -ForegroundColor Yellow
             return $false
         }
     }
@@ -52,7 +52,7 @@ if ($Install) {
         Write-Host "La tarea '$TaskName' ya existe." -ForegroundColor Yellow
         $response = Read-Host "¿Desea reemplazarla? (S/N)"
         if ($response -notmatch '^[Ss]') {
-            Write-Host "Instalación cancelada." -ForegroundColor Red
+            Write-Host "Instalacion cancelada." -ForegroundColor Red
             exit
         }
         Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
@@ -63,7 +63,7 @@ if ($Install) {
         -Argument "-ExecutionPolicy Bypass -WindowStyle Hidden -File `"$ScriptPath`" -Run"
     
     $Trigger1 = New-ScheduledTaskTrigger -AtStartup
-    $Trigger1.Delay = "PT1M"
+    $Trigger1.Delay = "PT1M" # 
     
     $Trigger2 = New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Minutes 1) -RepetitionDuration (New-TimeSpan -Days 3650)
     
@@ -135,18 +135,18 @@ if ($Run) {
             $HoraInicio = "09:00"
             $minutosInicio = 9 * 60
             
-            if ($Dia -eq 5 -or $Dia -eq 6) { 
+            if ($Dia -eq 5 -or $Dia -eq 6) {  
                 $HoraFin = "23:59"
                 $minutosFin = (23 * 60) + 59
                 $TipoDia = "Viernes/Sábado"
                 $Descripcion = "Vie/Sab - Siempre hasta 23:59"
-            } elseif ($Dia -ge 0 -and $Dia -le 4) { 
-                if ($Mes -ge 3 -and $Mes -le 12) { 
+            } elseif ($Dia -ge 0 -and $Dia -le 4) {  
+                if ($Mes -ge 3 -and $Mes -le 12) {  
                     $HoraFin = "22:30"
                     $minutosFin = (22 * 60) + 30
                     $TipoDia = "Dom-Jue (Mar-Dic)"
                     $Descripcion = "Dom-Jue de Mar-Dic: hasta 22:30"
-                } else { 
+                } else {  
                     $HoraFin = "23:59"
                     $minutosFin = (23 * 60) + 59
                     $TipoDia = "Dom-Jue (Ene-Feb)"
@@ -164,7 +164,7 @@ if ($Run) {
                 $motivo = "antes de las 09:00"
             } elseif ($minutosActual -gt $minutosFin) {
                 $apagar = $true
-                $motivo = "después de las $HoraFin"
+                $motivo = "despues de las $HoraFin"
             }
             
             $hacerLog = ($MinutoActual -eq 0) -or ($ultimoLogHora -ne $Now.Hour)
@@ -179,8 +179,8 @@ if ($Run) {
                 Start-Sleep -Seconds 3
                 
                 try {
-                    $process = Start-Process -FilePath "shutdown" -ArgumentList "/s /f /t 0 /c `"Apagado automático por horario. $Descripcion`"" -Wait -PassThru -NoNewWindow
-                    Write-Log "Comando shutdown ejecutado. Código de salida: $($process.ExitCode)"
+                    $process = Start-Process -FilePath "shutdown" -ArgumentList "/s /f /t 0 /c `"Apagado automatico por horario. $Descripcion`"" -Wait -PassThru -NoNewWindow
+                    Write-Log "Comando shutdown ejecutado. Codigo de salida: $($process.ExitCode)"
                 } catch {
                     Write-Log "ERROR al ejecutar shutdown: $_"
                 }
@@ -206,7 +206,7 @@ if ($Run) {
 
 if ($Test) {
     Write-Host "==========================================" -ForegroundColor Cyan
-    Write-Host "    MODO PRUEBA - DIAGNÓSTICO COMPLETO" -ForegroundColor Cyan
+    Write-Host "    MODO PRUEBA - DIAGNOSTICO COMPLETO" -ForegroundColor Cyan
     Write-Host "==========================================" -ForegroundColor Cyan
     Write-Host ""
     
@@ -250,7 +250,7 @@ if ($Test) {
         }
     }
     
-    Write-Host "CONFIGURACIÓN APLICADA:" -ForegroundColor Yellow
+    Write-Host "CONFIGURACION APLICADA:" -ForegroundColor Yellow
     Write-Host "  Tipo de día: $TipoDia"
     Write-Host "  Temporada: $Temporada"
     Write-Host "  Descripción: $Descripcion"
@@ -259,7 +259,7 @@ if ($Test) {
     
     $minutosActual = ($Now.Hour * 60) + $Now.Minute
     
-    Write-Host "CÁLCULOS:" -ForegroundColor Yellow
+    Write-Host "CALCULOS:" -ForegroundColor Yellow
     Write-Host "  Minutos desde medianoche: $minutosActual"
     Write-Host "  Minutos inicio (09:00): $minutosInicio"
     Write-Host "  Minutos fin ($HoraFin): $minutosFin"
@@ -303,6 +303,7 @@ if ($Test) {
     exit
 }
 
+# Menú principal cuando se ejecuta sin parámetros
 Write-Host "==========================================" -ForegroundColor Cyan
 Write-Host "   SHUTDOWN MANAGER - Control de Horarios" -ForegroundColor Cyan
 Write-Host "==========================================" -ForegroundColor Cyan
